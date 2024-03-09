@@ -1,0 +1,74 @@
+import java.util.HashMap;
+import java.util.Map;
+
+public class Link {
+    private String originalUrl;
+    private String shortUrl;
+    private static final Map<String, String> shortUrlToOriginal = new HashMap<>();
+    private static final Map<String, String> originalToShort = new HashMap<>();
+    private static final String CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    private static long counter = 0;
+
+    public Link(String originalUrl) {
+        this.originalUrl = originalUrl;
+        this.shortUrl = generateShortUrl();
+    }
+
+    private String generateShortUrl() {
+        if (originalToShort.containsKey(originalUrl)) {
+            return originalToShort.get(originalUrl);
+        }
+
+        String shortCode;
+        do {
+            String generatedShortCode = longToShort(counter);
+            shortCode = generatedShortCode;
+            counter++;
+        } while (shortUrlToOriginal.containsValue(shortCode));
+
+        shortUrlToOriginal.put(shortCode, originalUrl);
+        originalToShort.put(originalUrl, shortCode);
+        return shortCode;
+    }
+
+    private String longToShort(long num) {
+        StringBuilder sb = new StringBuilder();
+        while (num > 0) {
+            int rem = (int) (num % 62);
+            sb.append(CHARACTERS.charAt(rem));
+            num /= 62;
+        }
+        return sb.reverse().toString();
+    }
+
+    public String getOriginalUrl() {
+        return originalUrl;
+    }
+
+    public String getShortUrl() {
+        return shortUrl;
+    }
+
+    public static String expand(String shortUrl) {
+        if (originalToShort.containsKey(shortUrl)) {
+            return shortUrlToOriginal.get(shortUrl);
+        } else {
+            throw new IllegalArgumentException("Invalid short URL");
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Link link1 = new Link("https://www.example.com/very-long-url-1");
+        Link link2 = new Link("https://www.example.com/very-long-url-2");
+
+        System.out.println("Original URL 1: " + link1.getOriginalUrl());
+        System.out.println("Short URL 1: " + link1.getShortUrl());
+
+        System.out.println("Original URL 2: " + link2.getOriginalUrl());
+        System.out.println("Short URL 2: " + link2.getShortUrl());
+
+        System.out.println("Expanded URL: " + Link.expand(link1.getShortUrl()));
+    }
+}
